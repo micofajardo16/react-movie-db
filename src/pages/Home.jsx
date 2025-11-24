@@ -93,26 +93,192 @@
 // But in the tutorial, we don't sue real-time rendering
 // We use the search button
 
+// import MovieCard from "../components/MovieCard"
+// import { useState } from "react";
+// import "../css/Home.css"
+
+
+// function Home() {
+//     const [searchQuery, setSearchQuery] = useState("");
+
+//     const movies = [
+//         {id: 1, title: "Spider-Man", release_date: "2002"},
+//         {id: 2, title: "Spider-Man 2", release_date: "2004"},
+//         {id: 3, title: "Spider-Man 3", release_date: "2007"},
+//         {id: 4, title: "The Amazing Spider-Man", release_date: "2012"},
+//     ]
+
+
+//     const handleSearch = (e) => {
+//         e.preventDefault()
+//         alert(searchQuery)
+//     }
+
+//     return (
+//         <>
+//             <div className="home">
+//                 <form onSubmit={handleSearch} className="search-form">
+//                     <input type="text" 
+//                         placeholder="Search..." 
+//                         className="search-input" 
+//                         value={searchQuery} 
+//                         onChange={(e) => setSearchQuery(e.target.value)}>
+//                     </input>
+//                     <button type="submit" className="search-button">Search</button>
+//                 </form>
+
+//                 <div className="movies-grid">
+//                     {/* Technically, this was actually real-time, it just feels weird to use conditional rendering */}
+//                     {/* I would have preferred to use the logic above where you make a filter after every state change */}
+//                     {movies.map(movie => (
+//                         movie.title.toLowerCase().startsWith(searchQuery) &&
+//                         <MovieCard key={movie.id} movie={movie}></MovieCard>
+//                     ))}
+//                 </div>
+//             </div>
+//         </>
+//     )
+// }
+
+// Now, we want to take movies from an API
+// import MovieCard from "../components/MovieCard"
+// import { useEffect, useState } from "react";
+// import "../css/Home.css"
+// import { searchMovies, getPopularMovies } from "../services/api";
+
+
+// function Home() {
+//     const [searchQuery, setSearchQuery] = useState("");
+//     const [movies, setMovies] = useState([])
+//     const [err, setError] = useState(null)
+//     const [loading, setLoading] = useState(true)
+
+//     // useEffect allows to add affects to functions
+//     // defines when they should run, example
+//     // getting movies, should only run the first time
+//     // we dont want it do the API call everytime Home is regenerated
+
+//     // a function that is called when a certain array changes
+//     // this is called the "dependency array"
+//     // if it has changed since last render, useEffect will run
+//     // useEffect(() => {}, [])
+
+//     useEffect(() => {
+//         const loadPopularMovies = async () => {
+//             try {
+//                 const popularMovies = await getPopularMovies()
+//                 setMovies(popularMovies)
+//             } catch (e) {
+//                 console.log(e);
+//                 setError("Failed to load movies...")
+//             } finally {
+//                 setLoading(false)
+//             }
+//         }
+
+//         loadPopularMovies()
+//     }, [])
+
+
+//     const handleSearch = (e) => {
+//         e.preventDefault()
+//         alert(searchQuery)
+//     }
+
+//     return (
+//         <>
+//             <div className="home">
+//                 <form onSubmit={handleSearch} className="search-form">
+//                     <input type="text" 
+//                         placeholder="Search..." 
+//                         className="search-input" 
+//                         value={searchQuery} 
+//                         onChange={(e) => setSearchQuery(e.target.value)}>
+//                     </input>
+//                     <button type="submit" className="search-button">Search</button>
+//                 </form>
+
+//                     {/* for now, the filter function is removed to make way for search */}
+//                     {/* {movies.map(movie => (
+//                         movie.title.toLowerCase().startsWith(searchQuery) &&
+//                         <MovieCard key={movie.id} movie={movie}></MovieCard>
+//                     ))} */}
+//                     {/* adding a conditional function, so that while loading, the user is displayed a prompt */}
+//                     {/* as well as n error in case theres an error */}
+//                     {error && <div className="error-message">{error}</div>}
+                    
+//                     {loading ? 
+//                         (<div className="loading">Loading...</div>) 
+//                         : 
+//                         (<div className="movies-grid">
+//                                 {movies.map(movie => (
+//                                     <MovieCard key={movie.id} movie={movie}></MovieCard>
+//                                 ))}
+//                         </div>)
+//                     }
+//             </div>
+//         </>
+//     )
+// }
+
+
+// Next step is to get the search to work
+// So far, filter has been removed for search purposes, so that it doesnt recall the API all the time
+
 import MovieCard from "../components/MovieCard"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../css/Home.css"
+import { searchMovies, getPopularMovies } from "../services/api";
 
 
 function Home() {
     const [searchQuery, setSearchQuery] = useState("");
+    const [movies, setMovies] = useState([])
+    const [error, setError] = useState(null)
+    const [loading, setLoading] = useState(true)
 
-    const movies = [
-        {id: 1, title: "Spider-Man", release_date: "2002"},
-        {id: 2, title: "Spider-Man 2", release_date: "2004"},
-        {id: 3, title: "Spider-Man 3", release_date: "2007"},
-        {id: 4, title: "The Amazing Spider-Man", release_date: "2012"},
-    ]
+    useEffect(() => {
+        const loadPopularMovies = async () => {
+            try {
+                const popularMovies = await getPopularMovies()
+                setMovies(popularMovies)
+            } catch (e) {
+                console.log(e);
+                setError("Failed to load movies...")
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadPopularMovies()
+    }, [])
 
 
-    const handleSearch = (e) => {
+    const handleSearch = async (e) => {
         e.preventDefault()
-        alert(searchQuery)
+
+        // check first if searchQuery is empty
+        if (!searchQuery.trim()) return
+
+        // check first is something is already loading
+        // this stops us from searching when searching is already in process
+        if (loading) return
+        // indicate loading at start
+        setLoading(true)
+
+        try {
+            const searchResults = await searchMovies(searchQuery)
+            setMovies(searchResults)
+        } catch(e) {
+            console.log(e);
+            setError("Failed to search movies...")
+        } finally {
+            setLoading(false)
+        }
+        
     }
+
+    
 
     return (
         <>
@@ -126,19 +292,21 @@ function Home() {
                     </input>
                     <button type="submit" className="search-button">Search</button>
                 </form>
-
-                <div className="movies-grid">
-                    {/* Technically, this was actually real-time, it just feels weird to use conditional rendering */}
-                    {/* I would have preferred to use the logic above where you make a filter after every state change */}
-                    {movies.map(movie => (
-                        movie.title.toLowerCase().startsWith(searchQuery) &&
-                        <MovieCard key={movie.id} movie={movie}></MovieCard>
-                    ))}
-                </div>
+                    {error && <div className="error-message">Error: {error}</div>}
+                    {loading ? 
+                        (<div className="loading">Loading...</div>) 
+                        : 
+                        (<div className="movies-grid">
+                                {movies.map(movie => (
+                                    <MovieCard key={movie.id} movie={movie}></MovieCard>
+                                ))}
+                        </div>)
+                    }
             </div>
         </>
     )
 }
+
 
 
 export default Home
