@@ -161,6 +161,7 @@
 //     // a function that is called when a certain array changes
 //     // this is called the "dependency array"
 //     // if it has changed since last render, useEffect will run
+//     // and since our dependencyArray is empty, this translates to run only once
 //     // useEffect(() => {}, [])
 
 //     useEffect(() => {

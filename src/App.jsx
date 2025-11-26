@@ -3,6 +3,7 @@ import MovieCard from './components/MovieCard'
 import NavBar from './components/NavBar'
 import Favorites from './pages/Favorites'
 import Home from './pages/Home'
+import { MovieProvider } from './context/MovieContext'
 
 // Page Routing imports:
 import { Routes, Route } from 'react-router-dom'
@@ -42,7 +43,7 @@ function App() {
       </main> */}
 
       {/* Added Nav-Bar */}
-      <div>
+      {/* <div>
         <NavBar></NavBar>
         <main className='main-content'>
           <Routes>
@@ -50,7 +51,19 @@ function App() {
             <Route path='/favorites' element={<Favorites></Favorites>}></Route>
           </Routes>
         </main>
-      </div>
+      </div> */}
+
+      {/* Adding MovieProvider */}
+      {/* After wrapping with MovieProvider, everyone under can access the states and methods there */}
+      <MovieProvider>
+        <NavBar></NavBar>
+        <main className='main-content'>
+          <Routes>
+            <Route path='/' element={<Home></Home>}></Route>
+            <Route path='/favorites' element={<Favorites></Favorites>}></Route>
+          </Routes>
+        </main>
+      </MovieProvider>
     </>
   )
 }
